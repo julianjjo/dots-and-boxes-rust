@@ -1,7 +1,7 @@
 name: Tests and release
 on: [push, pull_request]
 env:
-  CRATE_NAME: ubi
+  CRATE_NAME: dots-and-boxes
   GITHUB_TOKEN: ${{ github.token }}
   RUST_BACKTRACE: 1
 jobs:
@@ -12,100 +12,95 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-          # Platforms that don't work:
-          #
-          # - sparc64-unknown-linux-gnu - cannot compile openssl-sys
-          # - x86_64-unknown-illumos - weird error compiling openssl - "bin/sh: 1: granlib: not found"
-
           - os_name: FreeBSD-x86_64
             os: ubuntu-20.04
             target: x86_64-unknown-freebsd
-            bin: ubi
-            name: ubi-FreeBSD-x86_64.tar.gz
+            bin: dots-and-boxes
+            name: dots-and-boxes-FreeBSD-x86_64.tar.gz
             skip_tests: true
           - os_name: Linux-x86_64
             os: ubuntu-20.04
             target: x86_64-unknown-linux-musl
-            bin: ubi
-            name: ubi-Linux-x86_64-musl.tar.gz
+            bin: dots-and-boxes
+            name: dots-and-boxes-Linux-x86_64-musl.tar.gz
           - os_name: Linux-aarch64
             os: ubuntu-20.04
             target: aarch64-unknown-linux-musl
-            bin: ubi
-            name: ubi-Linux-aarch64-musl.tar.gz
+            bin: dots-and-boxes
+            name: dots-and-boxes-Linux-aarch64-musl.tar.gz
           - os_name: Linux-arm
             os: ubuntu-20.04
             target: arm-unknown-linux-musleabi
-            bin: ubi
-            name: ubi-Linux-arm-musl.tar.gz
+            bin: dots-and-boxes
+            name: dots-and-boxes-Linux-arm-musl.tar.gz
           - os_name: Linux-i686
             os: ubuntu-20.04
             target: i686-unknown-linux-musl
-            bin: ubi
-            name: ubi-Linux-i686-musl.tar.gz
+            bin: dots-and-boxes
+            name: dots-and-boxes-Linux-i686-musl.tar.gz
             skip_tests: true
           - os_name: Linux-powerpc
             os: ubuntu-20.04
             target: powerpc-unknown-linux-gnu
-            bin: ubi
-            name: ubi-Linux-powerpc-gnu.tar.gz
+            bin: dots-and-boxes
+            name: dots-and-boxes-Linux-powerpc-gnu.tar.gz
             skip_tests: true
           - os_name: Linux-powerpc64
             os: ubuntu-20.04
             target: powerpc64-unknown-linux-gnu
-            bin: ubi
-            name: ubi-Linux-powerpc64-gnu.tar.gz
+            bin: dots-and-boxes
+            name: dots-and-boxes-Linux-powerpc64-gnu.tar.gz
             skip_tests: true
           - os_name: Linux-powerpc64le
             os: ubuntu-20.04
             target: powerpc64le-unknown-linux-gnu
-            bin: ubi
-            name: ubi-Linux-powerpc64le.tar.gz
+            bin: dots-and-boxes
+            name: dots-and-boxes-Linux-powerpc64le.tar.gz
             skip_tests: true
           - os_name: Linux-riscv64
             os: ubuntu-20.04
             target: riscv64gc-unknown-linux-gnu
-            bin: ubi
-            name: ubi-Linux-riscv64gc-gnu.tar.gz
+            bin: dots-and-boxes
+            name: dots-and-boxes-Linux-riscv64gc-gnu.tar.gz
           - os_name: Linux-s390x
             os: ubuntu-20.04
             target: s390x-unknown-linux-gnu
-            bin: ubi
-            name: ubi-Linux-s390x-gnu.tar.gz
+            bin: dots-and-boxes
+            name: dots-and-boxes-Linux-s390x-gnu.tar.gz
             skip_tests: true
           - os_name: NetBSD-x86_64
             os: ubuntu-20.04
             target: x86_64-unknown-netbsd
-            bin: ubi
-            name: ubi-NetBSD-x86_64.tar.gz
+            bin: dots-and-boxes
+            name: dots-and-boxes-NetBSD-x86_64.tar.gz
             skip_tests: true
           - os_name: Windows-aarch64
             os: windows-latest
             target: aarch64-pc-windows-msvc
-            bin: ubi.exe
-            name: ubi-Windows-aarch64.zip
+            bin: dots-and-boxes.exe
+            name: dots-and-boxes-Windows-aarch64.zip
             skip_tests: true
           - os_name: Windows-i686
             os: windows-latest
             target: i686-pc-windows-msvc
-            bin: ubi.exe
-            name: ubi-Windows-i686.zip
+            bin: dots-and-boxes.exe
+            name: dots-and-boxes-Windows-i686.zip
             skip_tests: true
           - os_name: Windows-x86_64
             os: windows-latest
             target: x86_64-pc-windows-msvc
-            bin: ubi.exe
-            name: ubi-Windows-x86_64.zip
+            bin: dots-and-boxes.exe
+            name: dots-and-boxes-Windows-x86_64.zip
           - os_name: macOS-x86_64
             os: macOS-latest
             target: x86_64-apple-darwin
-            bin: ubi
-            name: ubi-Darwin-x86_64.tar.gz
+            bin: dots-and-boxes
+            name: dots-and-boxes-Darwin-x86_64.tar.gz
           - os_name: macOS-aarch64
             os: macOS-latest
             target: aarch64-apple-darwin
-            bin: ubi
-            name: ubi-Darwin-aarch64.tar.gz
+            bin: dots-and-boxes
+            name: dots-and-boxes-Darwin-aarch64.tar.gz
             skip_tests: true
         toolchain:
           - stable
@@ -157,8 +152,8 @@ jobs:
       - name: Publish release artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: ubi-${{ matrix.platform.os_name }}
-          path: "ubi-*"
+          name: dots-and-boxes-${{ matrix.platform.os_name }}
+          path: "dots-and-boxes-*"
         if: matrix.toolchain == 'stable' && github.ref == 'refs/tags/test-release'
       - name: Generate SHA-256
         run: shasum -a 256 ${{ matrix.platform.name }}
@@ -171,6 +166,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           draft: true
-          files: "ubi*"
+          files: "dots-and-boxes*"
           body_path: Changes.md
         if: matrix.toolchain == 'stable' && startsWith( github.ref, 'refs/tags/v' )
