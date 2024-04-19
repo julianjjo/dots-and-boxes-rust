@@ -4,6 +4,7 @@ env:
   CRATE_NAME: dots-and-boxes
   GITHUB_TOKEN: ${{ github.token }}
   RUST_BACKTRACE: 1
+  PKG_CONFIG_PATH: /usr/lib/pkgconfig:/usr/local/lib/pkgconfi
 jobs:
   test:
     name: ${{ matrix.platform.os_name }} with rust ${{ matrix.toolchain }}
