@@ -1,10 +1,9 @@
-
 use bevy::{
     prelude::*,
-    sprite::{MaterialMesh2dBundle, Mesh2dHandle}
+    sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
-use bevy_mod_picking::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_mod_picking::prelude::*;
 
 const SIZE_LINE: f32 = 60.0;
 const GRID_SIZE: f32 = 6.0;
@@ -22,12 +21,6 @@ struct Board {
     grid: Vec<Vec<Vec<i8>>>,
 }
 
-#[derive(Resource)]
-struct Scores {
-    player1: usize,
-    player2: usize,
-}
-
 // Components
 #[derive(Component)]
 struct Line {
@@ -39,13 +32,6 @@ struct Position {
     row: usize,
     column: usize,
     index_line: usize,
-}
-
-#[derive(Component)]
-struct Square {
-    player: i8,
-    row: usize,
-    column: usize,
 }
 
 fn main() {
@@ -110,19 +96,13 @@ fn main() {
                 ],
             ],
         })
-        .insert_resource(Scores {
-            player1: 0,
-            player2: 0,
-        })
         .add_systems(Startup, setup)
-        .add_systems(Update, (check_click, check_squares))
+        .add_systems(Update, check_click)
         .run();
 }
 
 // Systems
 fn check_click(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut events: EventReader<Pointer<Click>>,
     query: Query<&Handle<ColorMaterial>>,
@@ -149,111 +129,10 @@ fn check_click(
                     }
                 }
 
-                // Check if a square is completed and spawn a colored square entity
-                if check_square_completed(&board.grid, position.row, position.column) {
-                    commands.spawn((
-                        MaterialMesh2dBundle {
-                            mesh: Mesh2dHandle(meshes.add(Rectangle::new(
-                                SIZE_LINE - WIDTH,
-                                SIZE_LINE - WIDTH,
-                            ))),
-                            material: materials.add(color),
-                            transform: Transform::from_translation(Vec3::new(
-                                (position.column as f32) * SIZE_LINE - (GRID_SIZE * SIZE_LINE) / 2.0
-                                    + SIZE_LINE / 2.0
-                                    - WIDTH / 2.0,
-                                (position.row as f32) * SIZE_LINE - (GRID_SIZE * SIZE_LINE) / 2.0
-                                    + SIZE_LINE / 2.0
-                                    - WIDTH / 2.0,
-                                -0.1, // Place slightly below lines
-                            )),
-                            ..default()
-                        },
-                        Square {
-                            player: actual_player.player,
-                            row: position.row, // Set row and column for the square
-                            column: position.column,
-                        },
-                    ));
-                }
-
                 actual_player.player = if actual_player.player == 1 { 2 } else { 1 };
             }
         }
     }
-}
-
-fn check_squares(
-    mut commands: Commands,
-    mut scores: ResMut<Scores>,
-    square_query: Query<(Entity, &Square)>,
-    line_query: Query<&Line>,
-) {
-    let mut game_over = true;
-    for (entity, square) in square_query.iter() {
-        // Check if any line around the square is not clicked
-        let mut square_complete = true;
-        for i in 0..4 {
-            let row = square.row + (i / 2);
-            let column = square.column + (i % 2);
-            let index_line = if i < 2 { 0 } else { 1 };
-
-            if let Ok(line) = line_query.get(Entity::from_raw(
-                ((row * GRID_SIZE as usize + column) * 4 + index_line) as u32,
-            )) {
-                if !line.clicked {
-                    square_complete = false;
-                    break;
-                }
-            } else {
-                square_complete = false;
-                break;
-            }
-        }
-
-        if square_complete {
-            if square.player == 1 {
-                scores.player1 += 1;
-            } else {
-                scores.player2 += 1;
-            }
-            commands.entity(entity).despawn();
-        } else {
-            game_over = false;
-        }
-    }
-
-    if game_over {
-        // Display winner or declare a draw
-        let winner_text = if scores.player1 > scores.player2 {
-            "Player 1 Wins!"
-        } else if scores.player2 > scores.player1 {
-            "Player 2 Wins!"
-        } else {
-            "It's a Draw!"
-        };
-        println!("{}", winner_text);
-    }
-}
-
-fn check_square_completed(grid: &Vec<Vec<Vec<i8>>>, row: usize, column: usize) -> bool {
-    // Check if all four lines around the square are claimed by the same player
-    let player = grid[row][column][0]; // Assuming lines are consistent
-    if player == 0 || player == *NOT_LINE {
-        return false;
-    }
-
-    for i in 0..4 {
-        let r = row + (i / 2);
-        let c = column + (i % 2);
-        let index_line = if i < 2 { 0 } else { 1 };
-
-        if grid[r][c][index_line] != player {
-            return false;
-        }
-    }
-
-    true
 }
 
 fn setup(
@@ -276,8 +155,16 @@ fn setup(
                     continue;
                 }
 
-                let line_length = if line_index == 0 || line_index == 2 { WIDTH } else { SIZE_LINE };
-                let line_width = if line_index == 0 || line_index == 2 { SIZE_LINE } else { WIDTH };
+                let line_length = if line_index == 0 || line_index == 2 {
+                    WIDTH
+                } else {
+                    SIZE_LINE
+                };
+                let line_width = if line_index == 0 || line_index == 2 {
+                    SIZE_LINE
+                } else {
+                    WIDTH
+                };
                 let x = (column_index as f32) * SIZE_LINE - offset_x;
                 let y = (row_index as f32) * SIZE_LINE - offset_y;
 
@@ -295,7 +182,7 @@ fn setup(
                     &mut materials,
                     translation,
                     line_length,
-                    line_width
+                    line_width,
                 );
             }
         }
@@ -309,14 +196,11 @@ fn spawn_line_entity(
     materials: &mut ResMut<Assets<ColorMaterial>>,
     translation: Vec3,
     line_length: f32,
-    line_width: f32
+    line_width: f32,
 ) {
     commands.spawn((
         MaterialMesh2dBundle {
-            mesh: Mesh2dHandle(meshes.add(Rectangle::new(
-                line_length,
-                line_width,
-            ))),
+            mesh: Mesh2dHandle(meshes.add(Rectangle::new(line_length, line_width))),
             material: materials.add(Color::WHITE),
             transform: Transform {
                 translation,
