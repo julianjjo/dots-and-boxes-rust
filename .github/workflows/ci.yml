@@ -124,6 +124,11 @@ jobs:
         run: |
           sudo apt-get update --yes
           sudo apt-get install --yes g++ pkg-config libx11-dev libasound2-dev libudev-dev libxkbcommon-x11-0
+      - name: Install FreeBSD dependencies
+        if: startsWith(matrix.platform.os_name, 'FreeBSD')
+        run: |
+          sudo apt-get update --yes
+          sudo apt-get install --yes g++ pkg-config libx11-dev libasound2-dev libudev-dev libxkbcommon-x11-0
       - name: Install Xcode Command Line Tools
         if: runner.os == 'macOS'
         run: |
