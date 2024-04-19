@@ -129,10 +129,6 @@ jobs:
         run: |
           sudo apt-get update --yes
           sudo apt-get install --yes g++ pkg-config libx11-dev libasound2-dev libudev-dev libxkbcommon-x11-0 libpulse-dev libdbus-1-dev portaudio19-dev
-      - name: Install Xcode Command Line Tools
-        if: runner.os == 'macOS'
-        run: |
-          xcode-select --install
       - name: Build binary
         uses: houseabsolute/actions-rust-cross@v0
         with:
