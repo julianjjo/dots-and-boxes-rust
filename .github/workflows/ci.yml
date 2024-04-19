@@ -120,7 +120,7 @@ jobs:
         run: sudo apt-get update --yes && sudo apt-get install --yes musl-tools
         if: contains(matrix.platform.name, 'musl')
       - name: Install Linux dependencies
-        if: startsWith(matrix.platform.os_name, 'Linux') && !contains(matrix.platform.name, 'musl')
+        if: startsWith(matrix.platform.os_name, 'Linux')
         run: |
           sudo apt-get update --yes
           sudo apt-get install --yes g++ pkg-config libx11-dev libasound2-dev libudev-dev libxkbcommon-x11-0
