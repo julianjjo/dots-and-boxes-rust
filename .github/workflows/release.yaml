@@ -5,6 +5,9 @@ on:
     tags:
       - '*'
 
+permissions:
+  contents: write
+
 env:
   # update with the name of the main binary
   binary: dots-and-boxes

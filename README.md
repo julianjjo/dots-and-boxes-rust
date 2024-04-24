@@ -5,14 +5,16 @@ Dots and Boxes is a digital implementation of the classic pen-and-paper game. Th
 
 ## Table of Contents
 
-- [Installation](https://chat.openai.com/g/g-wpMtgVmzG-readme-generator/c/580ec197-cf3f-40a0-806f-e56fa17d32ac#installation)
-- [Usage](https://chat.openai.com/g/g-wpMtgVmzG-readme-generator/c/580ec197-cf3f-40a0-806f-e56fa17d32ac#usage)
-- [Features](https://chat.openai.com/g/g-wpMtgVmzG-readme-generator/c/580ec197-cf3f-40a0-806f-e56fa17d32ac#features)
-- [Dependencies](https://chat.openai.com/g/g-wpMtgVmzG-readme-generator/c/580ec197-cf3f-40a0-806f-e56fa17d32ac#dependencies)
-- [Configuration](https://chat.openai.com/g/g-wpMtgVmzG-readme-generator/c/580ec197-cf3f-40a0-806f-e56fa17d32ac#configuration)
-- [Running Tests](https://chat.openai.com/g/g-wpMtgVmzG-readme-generator/c/580ec197-cf3f-40a0-806f-e56fa17d32ac#running-tests)
-- [Contributors](https://chat.openai.com/g/g-wpMtgVmzG-readme-generator/c/580ec197-cf3f-40a0-806f-e56fa17d32ac#contributors)
-- [License](https://chat.openai.com/g/g-wpMtgVmzG-readme-generator/c/580ec197-cf3f-40a0-806f-e56fa17d32ac#license)
+- [Dots and Boxes](#dots-and-boxes)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+  - [Usage](#usage)
+  - [Features](#features)
+  - [Dependencies](#dependencies)
+  - [Configuration](#configuration)
+  - [Running Tests](#running-tests)
+  - [Contributors](#contributors)
+  - [License](#license)
 
 ## Installation
 
@@ -68,4 +70,4 @@ julianjjo
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](https://github.com/julianjjo/dots-and-boxes-rust/blob/main/LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/julianjjo/dots-and-boxes-rust?tab=MIT-1-ov-file) file for details.
