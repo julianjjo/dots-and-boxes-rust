@@ -1,7 +1,6 @@
-
 use std::collections::HashSet;
 
-pub fn calulate_score(grid: &Vec<Vec<Vec<Vec<i8>>>>, player_1: &mut i32, player_2: &mut i32) {
+pub fn calulate_score(grid: Vec<Vec<Vec<Vec<i8>>>>, player_1: &mut i32, player_2: &mut i32) {
     for row in grid.iter() {
         for column in row.iter() {
             let amount_player_lines = count_unique_numbers(&column[1]);
@@ -16,7 +15,7 @@ pub fn calulate_score(grid: &Vec<Vec<Vec<Vec<i8>>>>, player_1: &mut i32, player_
     }
 }
 
-pub fn is_valid_position<T>(index: usize, vector: &Vec<T>) -> bool {
+pub fn is_valid_position<T>(index: usize, vector: Vec<T>) -> bool {
     index < vector.len()
 }
 

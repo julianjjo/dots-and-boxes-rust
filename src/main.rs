@@ -9,7 +9,6 @@ const SIZE_LINE: f32 = 100.0;
 const GRID_SIZE: f32 = 6.0;
 const WIDTH: f32 = 10.0;
 const NOT_LINE: &i8 = &4;
-
 // Resources
 #[derive(Resource)]
 struct ActualPlayer {
@@ -120,29 +119,32 @@ fn check_click(
                     actual_player.player;
 
                 if position.column > 0
-                    && util::is_valid_position(position.column - 1, &board.grid[position.row])
+                    && util::is_valid_position(
+                        position.column - 1,
+                        board.grid[position.row].clone(),
+                    )
+                    && position.index_line == 0
                 {
-                    if position.index_line == 0 {
-                        board.grid[position.row][position.column - 1][1][2] = actual_player.player;
-                    }
+                    board.grid[position.row][position.column - 1][1][2] = actual_player.player;
                 }
 
-                if util::is_valid_position(position.column + 1, &board.grid[position.row]) {
-                    if position.index_line == 2 {
-                        board.grid[position.row][position.column + 1][1][0] = actual_player.player;
-                    }
+                if util::is_valid_position(position.column + 1, board.grid[position.row].clone())
+                    && position.index_line == 2
+                {
+                    board.grid[position.row][position.column + 1][1][0] = actual_player.player;
                 }
 
-                if util::is_valid_position(position.row + 1, &board.grid) {
-                    if position.index_line == 1 {
-                        board.grid[position.row + 1][position.column][1][3] = actual_player.player;
-                    }
+                if util::is_valid_position(position.row + 1, board.grid.clone())
+                    && position.index_line == 1
+                {
+                    board.grid[position.row + 1][position.column][1][3] = actual_player.player;
                 }
 
-                if position.row > 0 && util::is_valid_position(position.row - 1, &board.grid) {
-                    if position.index_line == 3 {
-                        board.grid[position.row - 1][position.column][1][1] = actual_player.player;
-                    }
+                if position.row > 0
+                    && util::is_valid_position(position.row - 1, board.grid.clone())
+                    && position.index_line == 3
+                {
+                    board.grid[position.row - 1][position.column][1][1] = actual_player.player;
                 }
 
                 let color = if actual_player.player == 1 {
@@ -166,7 +168,7 @@ fn check_click(
 fn score_draw(mut query: Query<&mut Text, With<ScoreText>>, board: Res<Board>) {
     let mut player_1 = 0;
     let mut player_2 = 0;
-    util::calulate_score(&board.grid, &mut player_1, &mut player_2);
+    util::calulate_score(board.grid.clone(), &mut player_1, &mut player_2);
     if (player_1 > 0) || (player_2 > 0) {
         for mut text in &mut query {
             let score = format!("Score: Player 1: {} - Player 2: {}", player_1, player_2);
@@ -223,9 +225,11 @@ fn setup(
                     translation,
                     line_length,
                     line_width,
-                    row_index,
-                    column_index,
-                    line_index,
+                    Position {
+                        row: row_index,
+                        column: column_index,
+                        index_line: line_index,
+                    },
                 );
             }
         }
@@ -261,9 +265,7 @@ fn spawn_line_entity(
     translation: Vec3,
     line_length: f32,
     line_width: f32,
-    row: usize,
-    column: usize,
-    index_line: usize,
+    position: Position,
 ) {
     commands.spawn((
         MaterialMesh2dBundle {
@@ -276,11 +278,7 @@ fn spawn_line_entity(
             ..default()
         },
         Line { clicked: false },
-        Position {
-            row,
-            column,
-            index_line,
-        },
+        position,
         PickableBundle::default(),
     ));
 }
@@ -362,7 +360,7 @@ mod tests {
             ],
         });
         assert_eq!(
-            util::is_valid_position(1, &world.get_resource::<Board>().unwrap().grid[0]),
+            util::is_valid_position(1, world.get_resource::<Board>().unwrap().grid[0].clone()),
             true
         );
     }
@@ -425,7 +423,7 @@ mod tests {
         let mut player_1 = 0;
         let mut player_2 = 0;
         util::calulate_score(
-            &world.get_resource_mut::<Board>().unwrap().grid,
+            world.get_resource_mut::<Board>().unwrap().grid.clone(),
             &mut player_1,
             &mut player_2,
         );
