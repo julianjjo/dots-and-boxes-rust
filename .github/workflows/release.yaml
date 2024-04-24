@@ -5,8 +5,7 @@ on:
     tags:
       - '*'
 
-permissions:
-  contents: write
+permissions: write-all
 
 env:
   # update with the name of the main binary
@@ -223,7 +222,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-darwin
-      - name: Environment 
+      - name: Environment
         # macOS 11 was the first version to support ARM
         run: |
           export MACOSX_DEPLOYMENT_TARGET="11"
