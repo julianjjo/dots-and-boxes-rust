@@ -1,9 +1,16 @@
 use bevy::{
-    prelude::*,
-    sprite::{MaterialMesh2dBundle, Mesh2dHandle},
+    prelude::*, sprite::{MaterialMesh2dBundle, Mesh2dHandle}
 };
 use bevy_mod_picking::prelude::*;
 mod util;
+
+// Definición de los estados del juego
+#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
+enum GameState {
+    #[default]
+    MainMenu,
+    Playing,
+}
 
 const SIZE_LINE: f32 = 100.0;
 const GRID_SIZE: f32 = 6.0;
@@ -36,6 +43,13 @@ struct Position {
     index_line: usize,
 }
 
+#[derive(Component)]
+struct MainMenu;
+
+#[derive(Component)]
+struct MainMenuButton;
+
+
 fn main() {
     App::new()
         .add_plugins((
@@ -44,6 +58,7 @@ fn main() {
                 .build()
                 .disable::<DefaultHighlightingPlugin>(),
         ))
+        .init_state::<GameState>()
         .insert_resource(ActualPlayer { player: 1 })
         .insert_resource(Board {
             grid: vec![
@@ -97,9 +112,33 @@ fn main() {
                 ],
             ],
         })
-        .add_systems(Startup, setup)
-        .add_systems(Update, (check_click, score_draw))
+        .add_systems(
+            OnEnter(GameState::MainMenu),
+            setup_main_menu,
+        )
+        .add_systems(Startup, setup_camera)
+        .add_systems(
+            Update,
+            (
+                main_menu_button_system.run_if(in_state(GameState::MainMenu)),
+                check_click.run_if(in_state(GameState::Playing)),
+                score_draw.run_if(in_state(GameState::Playing)),
+                some_condition_to_go_back_to_menu.run_if(in_state(GameState::Playing)),
+            ),
+        )
+        .add_systems(
+            OnExit(GameState::MainMenu),
+            cleanup_main_menu,
+        )
+        .add_systems(
+            OnEnter(GameState::Playing),
+            setup,
+        )
         .run();
+}
+
+fn setup_camera(mut commands: Commands) {
+    commands.spawn(Camera2dBundle::default());
 }
 
 // Systems
@@ -177,13 +216,126 @@ fn score_draw(mut query: Query<&mut Text, With<ScoreText>>, board: Res<Board>) {
     }
 }
 
+fn setup_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
+
+    // Root UI node
+    commands.spawn((
+        NodeBundle {
+            style: Style {
+                height: Val::Percent(100.0),
+                width: Val::Percent(100.0),
+                // Centrar los elementos
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                flex_direction: FlexDirection::Column,
+                ..default()
+            },
+            ..default()
+        },
+        MainMenu,
+    ))
+    .with_children(|parent| {
+        // Título del juego
+        parent.spawn(TextBundle {
+            text: Text::from_section(
+                "Dots and Boxes",
+                TextStyle {
+                    font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                    font_size: 60.0,
+                    color: Color::WHITE,
+                },
+            ),
+            ..default()
+        });
+
+        // Espaciador
+        parent.spawn(NodeBundle {
+            style: Style {
+                width: Val::Auto,
+                height: Val::Px(50.0),
+                ..default()
+            },
+            ..default()
+        });
+
+        // Botón "Start Game"
+        parent
+            .spawn((
+                ButtonBundle {
+                    style: Style {
+                        width: Val::Px(200.0),
+                        height: Val::Px(65.0),
+                        // Centrar el botón
+                        margin: UiRect::all(Val::Auto),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    background_color: BackgroundColor(Color::DARK_GRAY),
+                    ..default()
+                },
+                MainMenuButton,
+            ))
+            .with_children(|parent| {
+                parent.spawn(TextBundle {
+                    text: Text::from_section(
+                        "Start Game",
+                        TextStyle {
+                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                            font_size: 40.0,
+                            color: Color::WHITE,
+                        },
+                    ),
+                    ..default()
+                });
+            });
+    });
+}
+
+fn main_menu_button_system(
+    mut interaction_query: Query<
+        (&Interaction, &mut BackgroundColor),
+        (Changed<Interaction>, With<Button>, With<MainMenuButton>),
+    >,
+    mut state: ResMut<NextState<GameState>>,
+) {
+    for (interaction, mut color) in &mut interaction_query {
+        match *interaction {
+            Interaction::Pressed => {
+                *color = BackgroundColor(Color::GRAY);
+                state.set(GameState::Playing);
+            }
+            Interaction::Hovered => {
+                *color = BackgroundColor(Color::GRAY);
+            }
+            Interaction::None => {
+                *color = BackgroundColor(Color::DARK_GRAY);
+            }
+        }
+    }
+}
+
+fn cleanup_main_menu(mut commands: Commands, query: Query<Entity, With<MainMenu>>) {
+    for entity in &query {
+        commands.entity(entity).despawn_recursive();
+    }
+}
+
+fn some_condition_to_go_back_to_menu(
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut state: ResMut<NextState<GameState>>,
+) {
+    if keyboard_input.just_pressed(KeyCode::Escape) {
+        state.set(GameState::MainMenu);
+    }
+}
+
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     board: ResMut<Board>,
 ) {
-    commands.spawn(Camera2dBundle::default());
 
     let offset_x = (GRID_SIZE * SIZE_LINE) / 2.0;
     let offset_y = (GRID_SIZE * SIZE_LINE) / 2.0;
