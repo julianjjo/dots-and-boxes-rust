@@ -1,10 +1,12 @@
 use bevy::{
-    prelude::*, sprite::{MaterialMesh2dBundle, Mesh2dHandle}
+    prelude::*,
+    sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
 use bevy_mod_picking::prelude::*;
-mod util;
+use bevy::app::AppExit;
+use bevy::input::ButtonInput;
 
-// Definición de los estados del juego
+
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
 enum GameState {
     #[default]
@@ -16,7 +18,8 @@ const SIZE_LINE: f32 = 100.0;
 const GRID_SIZE: f32 = 6.0;
 const WIDTH: f32 = 10.0;
 const NOT_LINE: &i8 = &4;
-// Resources
+
+// Recursos
 #[derive(Resource)]
 struct ActualPlayer {
     player: i8,
@@ -27,7 +30,7 @@ struct Board {
     grid: Vec<Vec<Vec<Vec<i8>>>>,
 }
 
-// Components
+// Componentes
 #[derive(Component)]
 struct Line {
     clicked: bool,
@@ -49,6 +52,8 @@ struct MainMenu;
 #[derive(Component)]
 struct MainMenuButton;
 
+#[derive(Component)]
+struct ExitButton;
 
 fn main() {
     App::new()
@@ -121,6 +126,7 @@ fn main() {
             Update,
             (
                 main_menu_button_system.run_if(in_state(GameState::MainMenu)),
+                exit_button_system.run_if(in_state(GameState::MainMenu)),
                 check_click.run_if(in_state(GameState::Playing)),
                 score_draw.run_if(in_state(GameState::Playing)),
                 some_condition_to_go_back_to_menu.run_if(in_state(GameState::Playing)),
@@ -141,7 +147,7 @@ fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
 }
 
-// Systems
+// Sistema para manejar los clics en las líneas durante el juego
 fn check_click(
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut events: EventReader<Pointer<Click>>,
@@ -204,6 +210,7 @@ fn check_click(
     }
 }
 
+// Sistema para actualizar la puntuación en pantalla
 fn score_draw(mut query: Query<&mut Text, With<ScoreText>>, board: Res<Board>) {
     let mut player_1 = 0;
     let mut player_2 = 0;
@@ -216,9 +223,9 @@ fn score_draw(mut query: Query<&mut Text, With<ScoreText>>, board: Res<Board>) {
     }
 }
 
+// Sistema para configurar el menú principal
 fn setup_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
-
-    // Root UI node
+    // Nodo raíz de la interfaz
     commands.spawn((
         NodeBundle {
             style: Style {
@@ -258,14 +265,13 @@ fn setup_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..default()
         });
 
-        // Botón "Start Game"
+        // Botón "Nueva partida"
         parent
             .spawn((
                 ButtonBundle {
                     style: Style {
                         width: Val::Px(200.0),
                         height: Val::Px(65.0),
-                        // Centrar el botón
                         margin: UiRect::all(Val::Auto),
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
@@ -279,7 +285,48 @@ fn setup_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             .with_children(|parent| {
                 parent.spawn(TextBundle {
                     text: Text::from_section(
-                        "Start Game",
+                        "Nueva partida",
+                        TextStyle {
+                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                            font_size: 40.0,
+                            color: Color::WHITE,
+                        },
+                    ),
+                    ..default()
+                });
+            });
+
+        // Espaciador entre botones
+        parent.spawn(NodeBundle {
+            style: Style {
+                width: Val::Auto,
+                height: Val::Px(20.0),
+                ..default()
+            },
+            ..default()
+        });
+
+        // Botón "Salir"
+        parent
+            .spawn((
+                ButtonBundle {
+                    style: Style {
+                        width: Val::Px(200.0),
+                        height: Val::Px(65.0),
+                        margin: UiRect::all(Val::Auto),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    background_color: BackgroundColor(Color::DARK_GRAY),
+                    ..default()
+                },
+                ExitButton,
+            ))
+            .with_children(|parent| {
+                parent.spawn(TextBundle {
+                    text: Text::from_section(
+                        "Salir",
                         TextStyle {
                             font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                             font_size: 40.0,
@@ -292,6 +339,7 @@ fn setup_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
     });
 }
 
+// Sistema para gestionar la interacción con el botón "Nueva partida"
 fn main_menu_button_system(
     mut interaction_query: Query<
         (&Interaction, &mut BackgroundColor),
@@ -315,12 +363,39 @@ fn main_menu_button_system(
     }
 }
 
+// Sistema para gestionar la interacción con el botón "Salir"
+fn exit_button_system(
+    mut interaction_query: Query<
+        (&Interaction, &mut BackgroundColor),
+        (Changed<Interaction>, With<Button>, With<ExitButton>),
+    >,
+    mut app_exit_events: EventWriter<AppExit>,
+) {
+    for (interaction, mut color) in &mut interaction_query {
+        match *interaction {
+            Interaction::Pressed => {
+                *color = BackgroundColor(Color::GRAY);
+                // Envía el evento para salir de la aplicación
+                app_exit_events.send(AppExit);
+            }
+            Interaction::Hovered => {
+                *color = BackgroundColor(Color::GRAY);
+            }
+            Interaction::None => {
+                *color = BackgroundColor(Color::DARK_GRAY);
+            }
+        }
+    }
+}
+
+// Sistema para limpiar el menú principal al salir de él
 fn cleanup_main_menu(mut commands: Commands, query: Query<Entity, With<MainMenu>>) {
     for entity in &query {
         commands.entity(entity).despawn_recursive();
     }
 }
 
+// Sistema para volver al menú principal (por ejemplo, al presionar Escape durante el juego)
 fn some_condition_to_go_back_to_menu(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut state: ResMut<NextState<GameState>>,
@@ -330,21 +405,21 @@ fn some_condition_to_go_back_to_menu(
     }
 }
 
+// Configuración del juego (spawn de líneas y UI de puntuación)
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     board: ResMut<Board>,
 ) {
-
     let offset_x = (GRID_SIZE * SIZE_LINE) / 2.0;
     let offset_y = (GRID_SIZE * SIZE_LINE) / 2.0;
 
-    // Spawn grid lines
+    // Creación de las líneas de la cuadrícula
     for (row_index, row) in board.grid.iter().enumerate() {
         for (column_index, lines) in row.iter().enumerate() {
             for (line_index, &line_type) in lines[0].iter().enumerate() {
-                // Only spawn lines if line_type is not NOT_LINE
+                // Solo se crean líneas si no es NOT_LINE
                 if line_type == *NOT_LINE {
                     continue;
                 }
@@ -363,10 +438,10 @@ fn setup(
                 let y = (row_index as f32) * SIZE_LINE - offset_y;
 
                 let translation = match line_index {
-                    0 => Vec3::new(x - (SIZE_LINE / 2.0), y, 0.0), // Left vertical line
-                    1 => Vec3::new(x, y + (SIZE_LINE / 2.0), 0.0), // Top horizontal line
-                    2 => Vec3::new(x + (SIZE_LINE / 2.0), y, 0.0), // Right vertical line
-                    3 => Vec3::new(x, y - (SIZE_LINE / 2.0), 0.0), // Bottom horizontal line
+                    0 => Vec3::new(x - (SIZE_LINE / 2.0), y, 0.0), // Línea vertical izquierda
+                    1 => Vec3::new(x, y + (SIZE_LINE / 2.0), 0.0), // Línea horizontal superior
+                    2 => Vec3::new(x + (SIZE_LINE / 2.0), y, 0.0), // Línea vertical derecha
+                    3 => Vec3::new(x, y - (SIZE_LINE / 2.0), 0.0), // Línea horizontal inferior
                     _ => unreachable!(),
                 };
 
@@ -409,7 +484,7 @@ fn setup(
     ));
 }
 
-// Helper function to spawn a line entity with the specified properties
+// Función auxiliar para crear una entidad de línea
 fn spawn_line_entity(
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
@@ -433,6 +508,40 @@ fn spawn_line_entity(
         position,
         PickableBundle::default(),
     ));
+}
+
+mod util {
+    use std::collections::HashSet;
+
+    // Calcula la puntuación a partir de la cuadrícula
+    pub fn calulate_score(grid: Vec<Vec<Vec<Vec<i8>>>>, player_1: &mut i32, player_2: &mut i32) {
+        for row in grid.iter() {
+            for column in row.iter() {
+                let amount_player_lines = count_unique_numbers(column[1].clone());
+                if amount_player_lines == 1 && column[1][0] != 0 {
+                    if column[1][0] == 1 {
+                        *player_1 += 1;
+                    } else {
+                        *player_2 += 1;
+                    }
+                }
+            }
+        }
+    }
+
+    // Verifica que el índice sea válido para el vector
+    pub fn is_valid_position<T>(index: usize, vector: Vec<T>) -> bool {
+        index < vector.len()
+    }
+
+    // Cuenta la cantidad de números únicos en un vector
+    pub fn count_unique_numbers(vector: Vec<i8>) -> usize {
+        let mut unique_set = HashSet::new();
+        for num in vector {
+            unique_set.insert(num);
+        }
+        unique_set.len()
+    }
 }
 
 #[cfg(test)]
