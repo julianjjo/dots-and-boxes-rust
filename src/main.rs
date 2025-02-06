@@ -6,6 +6,9 @@ use bevy_mod_picking::prelude::*;
 use bevy::app::AppExit;
 use bevy::input::ButtonInput;
 
+// Definir un componente marcador para entidades propias del juego (estado Playing)
+#[derive(Component)]
+struct PlayingElement;
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
 enum GameState {
@@ -117,10 +120,10 @@ fn main() {
                 ],
             ],
         })
-        .add_systems(
-            OnEnter(GameState::MainMenu),
-            setup_main_menu,
-        )
+        // Al entrar al menú, primero eliminamos las entidades del juego
+        .add_systems(OnEnter(GameState::MainMenu), cleanup_playing)
+        // Luego configuramos el menú
+        .add_systems(OnEnter(GameState::MainMenu), setup_main_menu)
         .add_systems(Startup, setup_camera)
         .add_systems(
             Update,
@@ -132,19 +135,20 @@ fn main() {
                 some_condition_to_go_back_to_menu.run_if(in_state(GameState::Playing)),
             ),
         )
-        .add_systems(
-            OnExit(GameState::MainMenu),
-            cleanup_main_menu,
-        )
-        .add_systems(
-            OnEnter(GameState::Playing),
-            setup,
-        )
+        .add_systems(OnExit(GameState::MainMenu), cleanup_main_menu)
+        .add_systems(OnEnter(GameState::Playing), setup)
         .run();
 }
 
 fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
+}
+
+// Sistema para limpiar todas las entidades propias del juego (estado Playing)
+fn cleanup_playing(mut commands: Commands, query: Query<Entity, With<PlayingElement>>) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
 }
 
 // Sistema para manejar los clics en las líneas durante el juego
@@ -225,7 +229,7 @@ fn score_draw(mut query: Query<&mut Text, With<ScoreText>>, board: Res<Board>) {
 
 // Sistema para configurar el menú principal
 fn setup_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
-    // Nodo raíz de la interfaz
+    // Nodo raíz de la interfaz del menú
     commands.spawn((
         NodeBundle {
             style: Style {
@@ -481,6 +485,7 @@ fn setup(
             ..default()
         }),
         ScoreText,
+        PlayingElement, // Marca como entidad del juego
     ));
 }
 
@@ -507,6 +512,7 @@ fn spawn_line_entity(
         Line { clicked: false },
         position,
         PickableBundle::default(),
+        PlayingElement, // Marca como entidad del juego
     ));
 }
 
