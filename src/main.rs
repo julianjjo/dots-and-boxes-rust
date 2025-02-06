@@ -1,10 +1,10 @@
+use bevy::app::AppExit;
+use bevy::input::ButtonInput;
 use bevy::{
     prelude::*,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
 use bevy_mod_picking::prelude::*;
-use bevy::app::AppExit;
-use bevy::input::ButtonInput;
 
 // Definir un componente marcador para entidades propias del juego (estado Playing)
 #[derive(Component)]
@@ -230,117 +230,118 @@ fn score_draw(mut query: Query<&mut Text, With<ScoreText>>, board: Res<Board>) {
 // Sistema para configurar el menú principal
 fn setup_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Nodo raíz de la interfaz del menú
-    commands.spawn((
-        NodeBundle {
-            style: Style {
-                height: Val::Percent(100.0),
-                width: Val::Percent(100.0),
-                // Centrar los elementos
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                flex_direction: FlexDirection::Column,
-                ..default()
-            },
-            ..default()
-        },
-        MainMenu,
-    ))
-    .with_children(|parent| {
-        // Título del juego
-        parent.spawn(TextBundle {
-            text: Text::from_section(
-                "Dots and Boxes",
-                TextStyle {
-                    font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                    font_size: 60.0,
-                    color: Color::WHITE,
+    commands
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    height: Val::Percent(100.0),
+                    width: Val::Percent(100.0),
+                    // Centrar los elementos
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    flex_direction: FlexDirection::Column,
+                    ..default()
                 },
-            ),
-            ..default()
-        });
-
-        // Espaciador
-        parent.spawn(NodeBundle {
-            style: Style {
-                width: Val::Auto,
-                height: Val::Px(50.0),
                 ..default()
             },
-            ..default()
-        });
-
-        // Botón "Nueva partida"
-        parent
-            .spawn((
-                ButtonBundle {
-                    style: Style {
-                        width: Val::Px(200.0),
-                        height: Val::Px(65.0),
-                        margin: UiRect::all(Val::Auto),
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        ..default()
+            MainMenu,
+        ))
+        .with_children(|parent| {
+            // Título del juego
+            parent.spawn(TextBundle {
+                text: Text::from_section(
+                    "Dots and Boxes",
+                    TextStyle {
+                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                        font_size: 60.0,
+                        color: Color::WHITE,
                     },
-                    background_color: BackgroundColor(Color::DARK_GRAY),
-                    ..default()
-                },
-                MainMenuButton,
-            ))
-            .with_children(|parent| {
-                parent.spawn(TextBundle {
-                    text: Text::from_section(
-                        "Nueva partida",
-                        TextStyle {
-                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                            font_size: 40.0,
-                            color: Color::WHITE,
-                        },
-                    ),
-                    ..default()
-                });
+                ),
+                ..default()
             });
 
-        // Espaciador entre botones
-        parent.spawn(NodeBundle {
-            style: Style {
-                width: Val::Auto,
-                height: Val::Px(20.0),
-                ..default()
-            },
-            ..default()
-        });
-
-        // Botón "Salir"
-        parent
-            .spawn((
-                ButtonBundle {
-                    style: Style {
-                        width: Val::Px(200.0),
-                        height: Val::Px(65.0),
-                        margin: UiRect::all(Val::Auto),
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                    background_color: BackgroundColor(Color::DARK_GRAY),
+            // Espaciador
+            parent.spawn(NodeBundle {
+                style: Style {
+                    width: Val::Auto,
+                    height: Val::Px(50.0),
                     ..default()
                 },
-                ExitButton,
-            ))
-            .with_children(|parent| {
-                parent.spawn(TextBundle {
-                    text: Text::from_section(
-                        "Salir",
-                        TextStyle {
-                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                            font_size: 40.0,
-                            color: Color::WHITE,
-                        },
-                    ),
-                    ..default()
-                });
+                ..default()
             });
-    });
+
+            // Botón "Nueva partida"
+            parent
+                .spawn((
+                    ButtonBundle {
+                        style: Style {
+                            width: Val::Px(200.0),
+                            height: Val::Px(65.0),
+                            margin: UiRect::all(Val::Auto),
+                            justify_content: JustifyContent::Center,
+                            align_items: AlignItems::Center,
+                            ..default()
+                        },
+                        background_color: BackgroundColor(Color::DARK_GRAY),
+                        ..default()
+                    },
+                    MainMenuButton,
+                ))
+                .with_children(|parent| {
+                    parent.spawn(TextBundle {
+                        text: Text::from_section(
+                            "Nueva partida",
+                            TextStyle {
+                                font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                                font_size: 40.0,
+                                color: Color::WHITE,
+                            },
+                        ),
+                        ..default()
+                    });
+                });
+
+            // Espaciador entre botones
+            parent.spawn(NodeBundle {
+                style: Style {
+                    width: Val::Auto,
+                    height: Val::Px(20.0),
+                    ..default()
+                },
+                ..default()
+            });
+
+            // Botón "Salir"
+            parent
+                .spawn((
+                    ButtonBundle {
+                        style: Style {
+                            width: Val::Px(200.0),
+                            height: Val::Px(65.0),
+                            margin: UiRect::all(Val::Auto),
+                            justify_content: JustifyContent::Center,
+                            align_items: AlignItems::Center,
+                            ..default()
+                        },
+                        background_color: BackgroundColor(Color::DARK_GRAY),
+                        ..default()
+                    },
+                    ExitButton,
+                ))
+                .with_children(|parent| {
+                    parent.spawn(TextBundle {
+                        text: Text::from_section(
+                            "Salir",
+                            TextStyle {
+                                font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                                font_size: 40.0,
+                                color: Color::WHITE,
+                            },
+                        ),
+                        ..default()
+                    });
+                });
+        });
 }
 
 // Sistema para gestionar la interacción con el botón "Nueva partida"
